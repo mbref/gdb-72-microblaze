@@ -45,6 +45,7 @@ hppa*)			gdb_host_cpu=pa ;;
 i[34567]86*)		gdb_host_cpu=i386 ;;
 m68*)			gdb_host_cpu=m68k ;;
 m88*)			gdb_host_cpu=m88k ;;
+microblaze*)		gdb_host_cpu=microblaze ;;
 mips*)			gdb_host_cpu=mips ;;
 powerpc* | rs6000)	gdb_host_cpu=powerpc ;;
 sparcv9 | sparc64)	gdb_host_cpu=sparc ;;
@@ -114,6 +115,8 @@ m68*-*-netbsd*)		gdb_host=nbsdaout ;;
 m68*-*-openbsd*)	gdb_host=obsd ;;
 
 m88*-*-openbsd*)	gdb_host=obsd ;;
+
+microblaze*-*-linux*)		gdb_host=linux ;;
 
 mips-sgi-irix5*)	gdb_host=irix5 ;;
 mips-sgi-irix6*)	gdb_host=irix6 ;;

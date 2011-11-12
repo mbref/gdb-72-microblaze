@@ -1,5 +1,7 @@
 /* Target-dependent code for Xilinx MicroBlaze.
 
+   Modified by Billy Huang.
+
    Copyright 2009, 2010 Free Software Foundation, Inc.
 
    This file is part of GDB.
@@ -114,7 +116,47 @@ enum microblaze_regnum
 #define MICROBLAZE_REGISTER_SIZE 4
 
 /* MICROBLAZE_BREAKPOINT defines the breakpoint that should be used.
-   Only used for native debugging.  */
+   Only used for native debugging.
+   Kernel handling is done in:
+   linux-2.6.35-microblaze/arch/microblaze/kernel/entry.S
+*/
+
+/* These are permanent software breakpoint, the kernel can't handle
+ * this and crashes
+ * brki rD, 0x08
+ * brki rD, 0x18
+ * */
+//#define MICROBLAZE_BREAKPOINT {0xb9, 0xcc, 0x00, 0x08}
+//#define MICROBLAZE_BREAKPOINT {0xb9, 0xcc, 0x00, 0x18}
+
+
+
+/* This is a permanent software breakpoint, the kernel can handle this
+ * thanks to the following in entry.S
+ *
+ *        .org    0x60
+ *                brai    TOPHYS(_debug_exception);       // debug trap handler
+ *
+ * However this produces a SIGTRAP code now.
+ *
+ * This is equivalent to
+ * brki rD, 0x60
+ * */
 #define MICROBLAZE_BREAKPOINT {0xb9, 0xcc, 0x00, 0x60}
 
+
+/* Thanks to exceptions.c the kernel has a SIG trap, recognised by
+ *  if (get_user(code, (unsigned long *)regs->pc) == 0
+ *    && code == 0x980c0000) {
+ *    _exception(SIGTRAP, regs, TRAP_BRKPT, addr);
+ *    ...
+ *
+ * So we use brk r0, r0. 
+ *
+ * It would be possible to include 0xb9CC0060 to exceptions.c
+ * and use that as the breakpoint - I haven't bothered...
+ * perhaps you want to use/try doing that. In the meantime I'm
+ * sticking with 0x980C0000 (brk r0, r0).
+*/
+//#define MICROBLAZE_BREAKPOINT {0x98, 0x0C, 0x00, 0x00}
 #endif /* microblaze-tdep.h */

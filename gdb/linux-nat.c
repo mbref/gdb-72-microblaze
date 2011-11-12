@@ -18,6 +18,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <sys/ptrace.h>
+
 #include "defs.h"
 #include "inferior.h"
 #include "target.h"
@@ -28,7 +30,7 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #endif
-#include <sys/ptrace.h>
+#include <linux/ptrace.h>
 #include "linux-nat.h"
 #include "linux-fork.h"
 #include "gdbthread.h"
@@ -3803,7 +3805,7 @@ linux_nat_kill (struct target_ops *ops)
   if (last.kind == TARGET_WAITKIND_FORKED
       || last.kind == TARGET_WAITKIND_VFORKED)
     {
-      ptrace (PT_KILL, PIDGET (last.value.related_pid), 0, 0);
+      ptrace (PTRACE_KILL, PIDGET (last.value.related_pid), 0, 0);
       wait (&status);
     }
 

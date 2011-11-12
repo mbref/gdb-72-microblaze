@@ -43,6 +43,7 @@ microblaze_linux_memory_insert_breakpoint (struct gdbarch *gdbarch,
 					   struct bp_target_info *bp_tgt)
 {
 
+  puts("GDB: microblaze_linux_memory_insert_breakpoint\n");
 
   /* adapted from mem-break.c */
  /* The microblaze allows software breaks, but only with 0x8 or 0x18 as the
@@ -65,6 +66,12 @@ microblaze_linux_memory_insert_breakpoint (struct gdbarch *gdbarch,
   val = target_read_memory (bp_tgt->placed_address, bp_tgt->shadow_contents,
                             bp_tgt->placed_size);
 
+  printf("GDB: microblaze_linux_memory_insert_breakpoint: bp_tgt->shadow_contents: 0x%08x\n", bp_tgt->shadow_contents);
+  printf("GDB: microblaze_linux_memory_insert_breakpoint: bp_tgt->placed_size: %d\n", bp_tgt->placed_size);
+  printf("GDB: microblaze_linux_memory_insert_breakpoint: bp_tgt->placed_address: %p\n", bp_tgt->placed_address);
+  printf("GDB: microblaze_linux_memory_insert_breakpoint: bp: %d\n", *bp);
+  printf("GDB: microblaze_linux_memory_insert_breakpoint: bp address: %p\n", bp);
+
   /* Write the breakpoint.  */
   if (val == 0)
     val = target_write_memory (bp_tgt->placed_address, bp,
@@ -82,6 +89,8 @@ static int
 microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch, 
 					   struct bp_target_info *bp_tgt)
 {
+  puts("GDB: microblaze_linux_memory_remove_breakpoint\n");
+
   CORE_ADDR addr = bp_tgt->placed_address;
   const gdb_byte *bp;
   int val;
@@ -95,7 +104,15 @@ microblaze_linux_memory_remove_breakpoint (struct gdbarch *gdbarch,
 
   val = target_read_memory (addr, old_contents, bplen);
 
-  val = target_write_memory (addr, bp_tgt->shadow_contents, bplen);
+  /* If our breakpoint is no longer at the address, this means that the
+     program modified the code on us, so it is wrong to put back the
+     old value.  */
+//  if (val == 0 && memcmp (bp, old_contents, bplen) == 0) {
+    val = target_write_memory (addr, bp_tgt->shadow_contents, bplen);
+    printf("GDB: microblaze_linux_memory_remove_breakpoint: restored contents: 0x%08x\n", (unsigned int) *bp_tgt->shadow_contents);
+//  } else {
+//    puts("GDB: microblaze_linux_memory_remove_breakpoint: didn't restore contents\n");
+//  }
 
   return val;
 }
@@ -106,6 +123,7 @@ microblaze_linux_sigtramp_cache (struct frame_info *next_frame,
 				 CORE_ADDR func, LONGEST offset,
 				 int bias)
 {
+  puts("GDB: microblaze_linux_sigtramp_cache\n");
   CORE_ADDR base;
   CORE_ADDR gpregs;
   int regnum;
@@ -158,11 +176,15 @@ static void
 microblaze_linux_init_abi (struct gdbarch_info info,
 			   struct gdbarch *gdbarch)
 {
+  puts("GDB: microblaze_linux_init_abi\n");
+
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
+  puts("GDB: set_gdbarch_memory_remove_breakpoint\n");
   set_gdbarch_memory_remove_breakpoint (gdbarch,
 					microblaze_linux_memory_remove_breakpoint);
 
+  puts("GDB: set_gdbarch_memory_insert_breakpoint\n");
   set_gdbarch_memory_insert_breakpoint (gdbarch,
 					microblaze_linux_memory_insert_breakpoint);
 
@@ -180,6 +202,7 @@ microblaze_linux_supply_gregset (const struct regset *regset,
                           struct regcache *regcache,
                           int regnum, const void *gregs_buf, size_t len)
 {
+  puts("GDB: microblaze_linux_supply_gregset\n");
 
   struct gdbarch *gdbarch = get_regcache_arch (regcache);
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -210,6 +233,7 @@ microblaze_linux_collect_gregset (const struct regset *regset,
                            const struct regcache *regcache,
                            int regnum, void *gregs_buf, size_t len)
 {
+  puts("GDB: microblaze_linux_collect_gregset\n");
 
   gdb_byte *gregs = gregs_buf;
   int regno;
@@ -229,6 +253,7 @@ microblaze_linux_supply_fpregset (const struct regset *regset,
                           struct regcache *regcache,
                           int regnum, const void *fpregs_buf, size_t len)
 {
+  puts("GDB: microblaze_linux_supply_fpregset\n");
   /* Not implemented yet */
 }
 
@@ -237,12 +262,14 @@ microblaze_linux_collect_fpregset (const struct regset *regset,
                            const struct regcache *regcache,
                            int regnum, void *fpregs_buf, size_t len)
 {
+  puts("GDB: microblaze_linux_collect_fpregset\n");
   /* Not implemented yet */
 }
 
 void
 _initialize_microblaze_linux_tdep (void)
 {
+  puts("_initialize_microblaze_linux_tdep\n");
   gdbarch_register_osabi (bfd_arch_microblaze, 0, GDB_OSABI_LINUX, 
 			  microblaze_linux_init_abi);
 }

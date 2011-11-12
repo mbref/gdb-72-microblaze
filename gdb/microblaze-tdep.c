@@ -127,8 +127,11 @@ microblaze_fetch_instruction (CORE_ADDR pc)
   gdb_byte buf[4];
 
   /* If we can't read the instruction at PC, return zero.  */
-  if (target_read_memory (pc, buf, sizeof (buf)))
+  if (target_read_memory (pc, buf, sizeof (buf))) {
+    /* */
+    error (_("could not read instruction at PC"));
     return 0;
+  }
 
   return extract_unsigned_integer (buf, 4, byte_order);
 }
@@ -264,8 +267,10 @@ microblaze_analyze_prologue (struct gdbarch *gdbarch, CORE_ADDR pc,
   insn = microblaze_fetch_instruction (pc);
   op = microblaze_decode_insn (insn, &rd, &ra, &rb, &imm);
 
-  if (IS_RETURN(op))
+  if (IS_RETURN(op)) {
+    microblaze_debug("Found Return OP.\n");
     return pc;
+  }
 
   /* Start at beginning of function and analyze until we get to the
      current pc, or the end of the function, whichever is first.  */
@@ -286,7 +291,7 @@ microblaze_analyze_prologue (struct gdbarch *gdbarch, CORE_ADDR pc,
 	 only instructions in the prologue.  */
       if (IS_UPDATE_SP(op, rd, ra))
 	{
-	  microblaze_debug ("got addi r1,r1,%d; contnuing\n", imm);
+	  microblaze_debug ("got addi r1,r1,%d; continuing\n", imm);
 	  if (cache->framesize)
 	    break;	/* break if framesize already computed.  */
 	  cache->framesize = -imm; /* stack grows towards low memory.  */
@@ -683,6 +688,16 @@ microblaze_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_num_regs (gdbarch, MICROBLAZE_NUM_REGS);
   set_gdbarch_register_name (gdbarch, microblaze_register_name);
   set_gdbarch_register_type (gdbarch, microblaze_register_type);
+
+  /* Pseudo registers used in regcache_cooked_read/regcache_cooked_write  */
+  /* FIXME:  Not implemented. This may not be needed...
+  set_gdbarch_pseudo_register_read (gdbarch, microblaze_pseudo_register_read);
+  set_gdbarch_pseudo_register_write (gdbarch, microblaze_pseudo_register_write);
+
+  * set_tdesc_pseudo_register_type (gdbarch, microblaze_pseudo_register_type);
+  * set_tdesc_pseudo_register_name (gdbarch, microblaze_pseudo_register_name);
+  */
+
 
   /* Register numbers of various important registers.  */
   set_gdbarch_sp_regnum (gdbarch, MICROBLAZE_SP_REGNUM); 

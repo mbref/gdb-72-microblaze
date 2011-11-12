@@ -31,7 +31,7 @@
 #include "linux-nat.h"
 #include "gdbthread.h"
 
-#include <sys/ptrace.h>
+#include <linux/ptrace.h>
 #include "gdb_wait.h"
 #include <sys/param.h>
 #include "gdb_dirent.h"
