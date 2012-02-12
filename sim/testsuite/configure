@@ -1872,7 +1872,7 @@ case "${target}" in
        sim_arch=mcore
        sim_testsuite=yes
        ;;
-   microblaze-*-*)
+   microblaze*-*-*)
        sim_arch=microblaze
        sim_testsuite=yes
        ;;
